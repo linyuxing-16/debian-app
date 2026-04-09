@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget,QApplication,QLabel,QVBoxLayout
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QPixmap
 import sys
 
@@ -8,6 +8,7 @@ class pet_window(QWidget):
         super().__init__()
         self.setWindowTitle("桌面宠物")
         self.setAttribute(Qt.WA_TranslucentBackground, True)
+        self.setWindowFlags(Qt.FramelessWindowHint)
         self.layout = QVBoxLayout(self)
         self.setLayout(self.layout)
         self.label = QLabel()
@@ -15,6 +16,22 @@ class pet_window(QWidget):
         self.label.setScaledContents(True)
         self.layout.addWidget(self.label)
         self.resetExpression()
+        self._drag_pos = None
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._drag_pos = event.globalPos() - self.frameGeometry().topLeft()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton and self._drag_pos is not None:
+            self.move(event.globalPos() - self._drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._drag_pos = None
+            event.accept()
 
     def resetExpression(self):
         "将宠物的图片设置为默认图片"
