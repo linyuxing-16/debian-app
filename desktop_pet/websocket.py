@@ -11,8 +11,8 @@ class WebSocketClient:
         self.thread = threading.Thread(target=self.receive, daemon=True)
         self.thread.start()
     
-    def send(self, message):
-        self.ws.send(message)
+    def send(self,text):
+        self.ws.send(text)
     
     def receive(self):
         while True:
