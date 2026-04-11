@@ -4,9 +4,9 @@ from PyQt5.QtGui import QFont
 import queue
 
 class textarea(QWidget):
-    def __init__(self, q: queue.Queue):
+    def __init__(self):
         super().__init__()
-        self.q = q
+        self.q = queue.Queue()
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setFixedSize(624, 60)
@@ -108,8 +108,8 @@ class textarea(QWidget):
         self.q.put(self.getText())
         self.textarea.clear()
 
-    def get_q(self):
-        return self.q
+    def get_message(self):
+        return self.q.get()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -128,10 +128,9 @@ class textarea(QWidget):
 
 if __name__ == "__main__":
     import sys
-    import threading
     app = QApplication(sys.argv)
-    q = queue.Queue()
-    window = textarea(q)
+    
+    window = textarea() 
     window.show()
     sys.exit(app.exec())
         
