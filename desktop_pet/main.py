@@ -1,43 +1,53 @@
-import websocket
+import websocket_class
 from config import WS_URL
-import json
-import pet_ui
-import threading
+from base import Receiver
+import sys
 from PyQt5.QtWidgets import QApplication
+import pet_ui
+import chat_ui
+import threading
+import textarea
 
-websocket_client = websocket.WebSocketClient(WS_URL)
-window_pet = pet_ui.pet_window()
-window_pet.show()
+app = QApplication(sys.argv)
+
+websocket_client = websocket_class.WebSocketClient(WS_URL)
+
+receiver = Receiver()
 
 def receive_message():
-    import chat_ui
-    window = chat_ui.pet_window()
+    i =""
     while True:
         message = websocket_client.get_message()
-        data = json.loads(message)
-        if "type" in data:
-            window_pet.startTalking()
-            window_pet.show()
-            window.chat(data["content"])
-            window.show()
-        elif "event" in data:
-            window.chat(data["content"])
-            window.show()
-            window_pet.startThinking()
-            window_pet.show()
+        if "type" in message:
+            i += message["content"]
+            receiver.signal.emit(i,"type")
+        elif "event" in message:
+            i = ""
+            receiver.signal.emit(i,"event")
+
+def receive_message_type(message,type):
+    if type == "type":
+        window_pet.startTalking()
+    elif type == "event":
+        window_pet.resetExpression()
 
 def send_message():
-    import textarea
-    window = textarea.textarea()
-    window.show()
-    message = window.get_message()
-    websocket_client.send(message)
+    while True:
+        message = windows_textarea.get_message()
+        websocket_client.send(message)
 
-if __name__ == "__main__":
-    import sys
-    t1 = threading.Thread(target=receive_message, daemon=True)
-    t2 = threading.Thread(target=send_message, daemon=True)
-    t1.start()
-    t2.start()
-    app = QApplication(sys.argv)
-    sys.exit(app.exec_())
+
+t1 = threading.Thread(target=receive_message, daemon=True)
+t2 = threading.Thread(target=send_message, daemon=True)
+window_pet = pet_ui.pet_window()
+window_chat = chat_ui.pet_window()
+windows_textarea = textarea.textarea()
+receiver.signal.connect(window_chat.chat)
+receiver.signal.connect(receive_message_type)
+t1.start()
+t2.start()
+window_chat.show()
+window_pet.show()
+windows_textarea.show()
+
+sys.exit(app.exec())
