@@ -2,6 +2,7 @@ import websocket_class
 from config import WS_URL, WS_AUTH_ENABLED, WS_AUTH_TOKEN
 from base import Receiver
 import sys
+import json
 from PyQt5.QtWidgets import QApplication
 import pet_ui
 import chat_ui
@@ -18,10 +19,11 @@ def receive_message():
     i =""
     while True:
         message = websocket_client.get_message()
-        if "type" in message:
-            i += message["content"]
+        data = json.loads(message)
+        if "type" in data:
+            i += data["content"]
             receiver.signal.emit(i,"type")
-        elif "event" in message:
+        elif "event" in data:
             i = ""
             receiver.signal.emit(i,"event")
 
