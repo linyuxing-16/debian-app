@@ -16,19 +16,36 @@ websocket_client = websocket_class.WebSocketClient(WS_URL, WS_AUTH_ENABLED, WS_A
 receiver = Receiver()
 
 def receive_message():
-    i =""
+    i = ""
     while True:
         message = websocket_client.get_message()
         data = json.loads(message)
-        if "type" in data:
-            i += data["content"]
-            receiver.signal.emit(i,"type")
+
+        # 思考消息（reasoning）不累积内容，但触发宠物说话动画
+        if data.get("type") == "reasoning":
+            receiver.signal.emit(i, "reasoning")
+        # 普通文本消息，累积内容
+        elif data.get("type") == "message" and data.get("content") is not None:
+            content = data["content"]
+            # content 可以是字符串或内容对象列表
+            if isinstance(content, str):
+                i += content
+            elif isinstance(content, list):
+                for item in content:
+                    if isinstance(item, dict) and item.get("type") == "text":
+                        i += item.get("text", "")
+                    elif isinstance(item, str):
+                        i += item
+            receiver.signal.emit(i, "type")
+        # 事件消息，重置累积变量
         elif "event" in data:
             i = ""
-            receiver.signal.emit(i,"event")
+            receiver.signal.emit(i, "event")
 
-def receive_message_type(message,type):
+def receive_message_type(message, type):
     if type == "type":
+        window_pet.startTalking()
+    elif type == "reasoning":
         window_pet.startTalking()
     elif type == "event":
         window_pet.resetExpression()
