@@ -1,5 +1,5 @@
 import websocket_class
-from config import WS_URL
+from config import WS_URL, WS_AUTH_ENABLED, WS_AUTH_TOKEN
 from base import Receiver
 import sys
 from PyQt5.QtWidgets import QApplication
@@ -10,7 +10,7 @@ import textarea
 
 app = QApplication(sys.argv)
 
-websocket_client = websocket_class.WebSocketClient(WS_URL)
+websocket_client = websocket_class.WebSocketClient(WS_URL, WS_AUTH_ENABLED, WS_AUTH_TOKEN)
 
 receiver = Receiver()
 
