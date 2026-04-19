@@ -26,14 +26,18 @@ WebSocket 认证环境变量：
 
 ### 消息流程
 ```
+应用启动 → 显示 UI → 后台异步连接 WebSocket
+                                    ↓
 用户输入 → textarea → websocket_class → WebSocket 服务器
                                       ↓
 WebSocket 服务器 → receive_message → JSON 解析 → PyQt Signal → UI 更新
 ```
 
+**注意**: WebSocket 连接在后台异步进行，服务器不可用时应用也能正常启动。
+
 ### 核心组件
-- **main.py**: 入口点。初始化 WebSocket 客户端，启动 `receive_message` 和 `send_message` 守护线程
-- **websocket_class.py**: 基于队列的消息缓冲 WebSocket 客户端
+- **main.py**: 入口点。先显示 UI 窗口，再异步连接 WebSocket，启动 `receive_message` 和 `send_message` 守护线程
+- **websocket_class.py**: 基于队列的消息缓冲 WebSocket 客户端，支持异步连接和自动重连
 - **base.py**: `Receiver` QObject，包含跨线程通信用的 `pyqtSignal(str, str)`
 - **config.py**: WebSocket URL（`ws://localhost:8000/ws`）和认证配置
 
