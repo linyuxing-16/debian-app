@@ -22,11 +22,11 @@ class textarea(QWidget):
         self.main_widget.setGraphicsEffect(shadow)
         self.main_widget.setStyleSheet("""
             QWidget {
-                background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, 
-                    stop:0 rgba(85, 170, 255, 240), 
-                    stop:1 rgba(135, 206, 250, 250));
+                background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(255, 255, 255, 255),
+                    stop:1 rgba(240, 240, 240, 255));
                 border-radius: 10px;
-                border: 2px solid rgba(255, 255, 255, 100);
+                border: 2px solid rgba(200, 200, 200, 100);
             }
         """)
         
@@ -40,15 +40,15 @@ class textarea(QWidget):
         self.textarea.setFont(QFont("微软雅黑", 10))
         self.textarea.setStyleSheet("""
             QTextEdit {
-                background-color: rgba(255, 255, 255, 200);
-                border: none;
+                background-color: rgba(255, 255, 255, 255);
+                border: 1px solid rgba(200, 200, 200, 150);
                 border-radius: 8px;
                 padding: 5px 10px;
-                color: #333;
+                color: #000;
             }
             QTextEdit:focus {
-                background-color: rgba(255, 255, 255, 230);
-                border: 2px solid rgba(255, 255, 255, 150);
+                background-color: rgba(255, 255, 255, 255);
+                border: 2px solid rgba(0, 0, 0, 100);
             }
         """)
         self.layout.addWidget(self.textarea)
@@ -60,17 +60,17 @@ class textarea(QWidget):
         self.send_button.setCursor(Qt.PointingHandCursor)
         self.send_button.setStyleSheet("""
             QPushButton {
-                background-color: rgba(255, 255, 255, 200);
+                background-color: rgba(0, 0, 0, 80);
                 border: none;
                 border-radius: 8px;
-                color: #555;
+                color: white;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: rgba(255, 255, 255, 240);
+                background-color: rgba(0, 0, 0, 120);
             }
             QPushButton:pressed {
-                background-color: rgba(255, 255, 255, 180);
+                background-color: rgba(0, 0, 0, 60);
             }
         """)
         self.layout.addWidget(self.send_button)
