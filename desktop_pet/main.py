@@ -9,6 +9,7 @@ import pet_ui
 import chat_ui
 import threading
 import textarea
+import pettraylcon
 
 
 def receive_message():
@@ -76,6 +77,10 @@ receiver.signal.connect(receive_message_type)
 window_chat.show()
 window_pet.show()
 windows_textarea.show()
+
+# 创建托盘图标
+tray = pettraylcon.Traylcon(window_pet, window_chat, windows_textarea)
+tray.show()
 
 # 创建 WebSocket 客户端（不阻塞）
 websocket_client = websocket_class.WebSocketClient(WS_URL, WS_AUTH_ENABLED, WS_AUTH_TOKEN)
