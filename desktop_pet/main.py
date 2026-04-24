@@ -5,6 +5,7 @@ import sys
 import json
 import time
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QTimer
 import pet_ui
 import chat_ui
 import threading
@@ -93,5 +94,13 @@ t2.start()
 
 # 异步连接 WebSocket
 websocket_client.connect_async()
+
+# 设置 textarea 的 websocket 客户端引用
+windows_textarea.set_websocket_client(websocket_client)
+
+# 创建定时器更新连接状态
+status_timer = QTimer()
+status_timer.timeout.connect(windows_textarea.update_connection_status)
+status_timer.start(1000)  # 每 1 秒更新一次
 
 sys.exit(app.exec())

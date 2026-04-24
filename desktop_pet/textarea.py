@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QTextEdit, QPushButton, QGraphicsDropShadowEffect
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QTextEdit, QPushButton, QGraphicsDropShadowEffect, QLabel, QVBoxLayout
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont
 import queue
 
@@ -7,18 +7,19 @@ class textarea(QWidget):
     def __init__(self):
         super().__init__()
         self.q = queue.Queue()
+        self.ws_client = None
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setFixedSize(624, 60)
+        self.setFixedSize(624, 80)
         self._drag_position = None
-        
+
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(20)
         shadow.setColor(Qt.gray)
         shadow.setOffset(0, 5)
-        
+
         self.main_widget = QWidget(self)
-        self.main_widget.setGeometry(0, 0, 624, 60)
+        self.main_widget.setGeometry(0, 0, 624, 80)
         self.main_widget.setGraphicsEffect(shadow)
         self.main_widget.setStyleSheet("""
             QWidget {
@@ -29,11 +30,16 @@ class textarea(QWidget):
                 border: 2px solid rgba(200, 200, 200, 100);
             }
         """)
-        
-        self.layout = QHBoxLayout(self.main_widget)
-        self.layout.setContentsMargins(15, 10, 15, 10)
-        self.setLayout(self.layout)
-        
+
+        # 外层垂直布局
+        self.outer_layout = QVBoxLayout(self.main_widget)
+        self.outer_layout.setContentsMargins(15, 5, 15, 5)
+        self.outer_layout.setSpacing(2)
+        self.setLayout(self.outer_layout)
+
+        # 输入行水平布局
+        self.input_layout = QHBoxLayout()
+
         self.textarea = QTextEdit()
         self.textarea.setFixedSize(480, 35)
         self.textarea.setPlaceholderText("请输入文本")
@@ -51,8 +57,8 @@ class textarea(QWidget):
                 border: 2px solid rgba(0, 0, 0, 100);
             }
         """)
-        self.layout.addWidget(self.textarea)
-        
+        self.input_layout.addWidget(self.textarea)
+
         self.send_button = QPushButton("发送")
         self.send_button.clicked.connect(self.send)
         self.send_button.setFixedSize(80, 35)
@@ -73,8 +79,8 @@ class textarea(QWidget):
                 background-color: rgba(0, 0, 0, 60);
             }
         """)
-        self.layout.addWidget(self.send_button)
-        
+        self.input_layout.addWidget(self.send_button)
+
         self.close_button = QPushButton("×")
         self.close_button.clicked.connect(self.close)
         self.close_button.setFixedSize(25, 25)
@@ -95,8 +101,16 @@ class textarea(QWidget):
                 background-color: rgba(255, 60, 60, 200);
             }
         """)
-        self.layout.addWidget(self.close_button)
-        
+        self.input_layout.addWidget(self.close_button)
+
+        self.outer_layout.addLayout(self.input_layout)
+
+        # 状态标签
+        self.status_label = QLabel("连接中...")
+        self.status_label.setFont(QFont("微软雅黑", 8))
+        self.status_label.setStyleSheet("color: gray; padding-left: 5px;")
+        self.outer_layout.addWidget(self.status_label)
+
         self.main_widget.mouseMoveEvent = self.mouseMoveEvent
         self.main_widget.mousePressEvent = self.mousePressEvent
         self.main_widget.mouseReleaseEvent = self.mouseReleaseEvent
@@ -110,6 +124,24 @@ class textarea(QWidget):
 
     def get_message(self):
         return self.q.get()
+
+    def set_websocket_client(self, ws_client):
+        """设置 WebSocket 客户端引用"""
+        self.ws_client = ws_client
+
+    def update_connection_status(self):
+        """更新连接状态显示"""
+        if self.ws_client is None:
+            return
+        if self.ws_client.is_connected():
+            self.status_label.setText("已连接")
+            self.status_label.setStyleSheet("color: #4CAF50; padding-left: 5px;")
+        elif self.ws_client._connecting:
+            self.status_label.setText("连接中...")
+            self.status_label.setStyleSheet("color: gray; padding-left: 5px;")
+        else:
+            self.status_label.setText("未连接")
+            self.status_label.setStyleSheet("color: #F44336; padding-left: 5px;")
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
