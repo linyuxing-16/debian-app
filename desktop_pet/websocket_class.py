@@ -52,6 +52,8 @@ class WebSocketClient:
             try:
                 message = self.ws.recv()
                 self.q.put(message)
+            except websocket.WebSocketTimeoutException:
+                continue  # 超时不是错误，继续等待
             except Exception:
                 break
         self._connected = False
