@@ -10,6 +10,7 @@ import pet_ui
 import dialog
 import threading
 import pettraylcon
+import settings_ui
 
 
 def receive_message():
@@ -70,6 +71,7 @@ receiver = Receiver()
 # 先创建 UI 窗口
 window_pet = pet_ui.pet_window()
 window_dialog = dialog.DialogWindow()
+window_settings = settings_ui.SettingsWindow()
 receiver.signal.connect(window_dialog.chat)
 receiver.signal.connect(receive_message_type)
 
@@ -78,7 +80,7 @@ window_dialog.show()
 window_pet.show()
 
 # 创建托盘图标
-tray = pettraylcon.Traylcon(window_pet, window_dialog)
+tray = pettraylcon.Traylcon(window_pet, window_dialog, window_settings)
 tray.show()
 
 # 创建 WebSocket 客户端（不阻塞）

@@ -3,10 +3,11 @@ from PyQt5.QtGui import QIcon
 
 
 class Traylcon(QSystemTrayIcon):
-    def __init__(self, pet_window, dialog_window, parent=None):
+    def __init__(self, pet_window, dialog_window, settings_window, parent=None):
         super().__init__(parent)
         self.pet_window = pet_window
         self.dialog_window = dialog_window
+        self.settings_window = settings_window
 
         self.setIcon(QIcon("desktop_pet/pet-png/calm.png"))
 
@@ -23,6 +24,10 @@ class Traylcon(QSystemTrayIcon):
         menu.addAction(self.dialog_action)
 
         menu.addSeparator()
+
+        settings_action = QAction("设置", self)
+        settings_action.triggered.connect(self.show_settings)
+        menu.addAction(settings_action)
 
         quit_action = QAction("退出", self)
         quit_action.triggered.connect(self.quit_app)
@@ -41,6 +46,10 @@ class Traylcon(QSystemTrayIcon):
             self.dialog_window.show()
         else:
             self.dialog_window.hide()
+
+    def show_settings(self):
+        self.settings_window.show()
+        self.settings_window.activateWindow()
 
     def quit_app(self):
         from PyQt5.QtWidgets import QApplication
