@@ -3,11 +3,10 @@ from PyQt5.QtGui import QIcon
 
 
 class Traylcon(QSystemTrayIcon):
-    def __init__(self, pet_window, chat_window, textarea_window, parent=None):
+    def __init__(self, pet_window, dialog_window, parent=None):
         super().__init__(parent)
         self.pet_window = pet_window
-        self.chat_window = chat_window
-        self.textarea_window = textarea_window
+        self.dialog_window = dialog_window
 
         self.setIcon(QIcon("desktop_pet/pet-png/calm.png"))
 
@@ -18,15 +17,10 @@ class Traylcon(QSystemTrayIcon):
         self.pet_action.triggered.connect(self.toggle_pet)
         menu.addAction(self.pet_action)
 
-        self.chat_action = QAction("聊天窗口", self, checkable=True)
-        self.chat_action.setChecked(True)
-        self.chat_action.triggered.connect(self.toggle_chat)
-        menu.addAction(self.chat_action)
-
-        self.textarea_action = QAction("输入框", self, checkable=True)
-        self.textarea_action.setChecked(True)
-        self.textarea_action.triggered.connect(self.toggle_textarea)
-        menu.addAction(self.textarea_action)
+        self.dialog_action = QAction("对话框", self, checkable=True)
+        self.dialog_action.setChecked(True)
+        self.dialog_action.triggered.connect(self.toggle_dialog)
+        menu.addAction(self.dialog_action)
 
         menu.addSeparator()
 
@@ -42,17 +36,11 @@ class Traylcon(QSystemTrayIcon):
         else:
             self.pet_window.hide()
 
-    def toggle_chat(self):
-        if self.chat_action.isChecked():
-            self.chat_window.show()
+    def toggle_dialog(self):
+        if self.dialog_action.isChecked():
+            self.dialog_window.show()
         else:
-            self.chat_window.hide()
-
-    def toggle_textarea(self):
-        if self.textarea_action.isChecked():
-            self.textarea_window.show()
-        else:
-            self.textarea_window.hide()
+            self.dialog_window.hide()
 
     def quit_app(self):
         from PyQt5.QtWidgets import QApplication

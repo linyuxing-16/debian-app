@@ -7,9 +7,8 @@ import time
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QTimer
 import pet_ui
-import chat_ui
+import dialog
 import threading
-import textarea
 import pettraylcon
 
 
@@ -58,29 +57,28 @@ def receive_message_type(message, type):
 
 def send_message():
     while True:
-        message = windows_textarea.get_message()
+        message = window_dialog.get_message()
         websocket_client.send(message)
 
 
 # 应用入口
 app = QApplication(sys.argv)
+app.setQuitOnLastWindowClosed(False)  # 关闭所有窗口后不退出程序
 
 receiver = Receiver()
 
 # 先创建 UI 窗口
 window_pet = pet_ui.pet_window()
-window_chat = chat_ui.pet_window()
-windows_textarea = textarea.textarea()
-receiver.signal.connect(window_chat.chat)
+window_dialog = dialog.DialogWindow()
+receiver.signal.connect(window_dialog.chat)
 receiver.signal.connect(receive_message_type)
 
 # 显示窗口
-window_chat.show()
+window_dialog.show()
 window_pet.show()
-windows_textarea.show()
 
 # 创建托盘图标
-tray = pettraylcon.Traylcon(window_pet, window_chat, windows_textarea)
+tray = pettraylcon.Traylcon(window_pet, window_dialog)
 tray.show()
 
 # 创建 WebSocket 客户端（不阻塞）
@@ -95,12 +93,12 @@ t2.start()
 # 异步连接 WebSocket
 websocket_client.connect_async()
 
-# 设置 textarea 的 websocket 客户端引用
-windows_textarea.set_websocket_client(websocket_client)
+# 设置 dialog 的 websocket 客户端引用
+window_dialog.set_websocket_client(websocket_client)
 
 # 创建定时器更新连接状态
 status_timer = QTimer()
-status_timer.timeout.connect(windows_textarea.update_connection_status)
+status_timer.timeout.connect(window_dialog.update_connection_status)
 status_timer.start(1000)  # 每 1 秒更新一次
 
 sys.exit(app.exec())
