@@ -69,9 +69,9 @@ app.setQuitOnLastWindowClosed(False)  # 关闭所有窗口后不退出程序
 receiver = Receiver()
 
 # 先创建 UI 窗口
-window_pet = pet_ui.pet_window()
 window_dialog = dialog.DialogWindow()
 window_settings = settings_ui.SettingsWindow()
+window_pet = pet_ui.pet_window(window_dialog, window_settings)
 receiver.signal.connect(window_dialog.chat)
 receiver.signal.connect(receive_message_type)
 
