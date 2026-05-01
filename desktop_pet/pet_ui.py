@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QWidget,QApplication,QLabel,QVBoxLayout
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 import sys
+import config
 
 class pet_window(QWidget):
     def __init__(self):
@@ -12,7 +13,7 @@ class pet_window(QWidget):
         self.layout = QVBoxLayout(self)
         self.setLayout(self.layout)
         self.label = QLabel()
-        self.label.setFixedSize(200, 300)
+        self.label.setFixedSize(config.PET_WIDTH, config.PET_HEIGHT)
         self.label.setScaledContents(True)
         self.layout.addWidget(self.label)
         self.resetExpression()

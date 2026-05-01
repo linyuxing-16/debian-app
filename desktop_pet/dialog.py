@@ -9,6 +9,7 @@ import io
 import base64
 import threading
 import json
+import config
 
 
 class DialogWindow(QWidget):
@@ -25,7 +26,7 @@ class DialogWindow(QWidget):
         # 窗口设置
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setFixedSize(650, 200)
+        self.setFixedSize(config.DIALOG_WIDTH, config.DIALOG_HEIGHT)
         self.setWindowOpacity(0.95)
 
         # 拖动相关
