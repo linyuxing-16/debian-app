@@ -4,73 +4,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-桌面宠物（桌宠）应用，使用 PyQt5 连接 WebSocket 服务器进行 AI 聊天交互。宠物根据消息类型显示不同表情。
+基于 PyQt5 的桌面宠物应用。屏幕上显示可拖动的宠物角色，配合对话框窗口通过 WebSocket 进行 AI 聊天交互。包含系统托盘集成、设置管理和语音录制功能。
 
-## 运行应用
+## 常用命令
 
 ```bash
-source .venv/bin/activate
-python desktop_pet/main.py
-```
+# 安装依赖
+pip install -r desktop_pet/requirements.txt
 
-WebSocket 认证环境变量：
-- `WEBSOCKET_AUTH_ENABLED=true` - 启用 token 认证
-- `WEBSOCKET_AUTH_TOKEN=your_token` - 认证 token 值
+# 运行应用
+cd /home/linyuxin/Desktop/app/debian-app && python desktop_pet/main.py
+```
 
 ## 架构
 
-### 三窗口 UI 系统
-- **pet_ui.py** - 宠物精灵窗口（200x300，无边框透明，可拖拽）。从 `desktop_pet/pet-png/` 目录加载 PNG 图片
-- **chat_ui.py** - 聊天气泡窗口（400x150，圆角渐变）。显示 AI 回复文本
-- **textarea.py** - 输入组件（624x80）。文本输入框、发送按钮和连接状态标签
-
-### 消息流程
 ```
-应用启动 → 显示 UI → 后台异步连接 WebSocket
-                                    ↓
-用户输入 → textarea → websocket_class → WebSocket 服务器
-                                      ↓
-WebSocket 服务器 → receive_message → JSON 解析 → PyQt Signal → UI 更新
+desktop_pet/
+├── main.py           # 应用入口，协调所有组件
+├── config.py         # 配置管理（JSON 持久化）
+├── websocket_class.py # WebSocket 客户端，支持自动重连和 Token 认证
+├── base.py           # Qt 信号发射器，用于跨线程通信
+├── pet_ui.py         # 可拖动的宠物窗口，包含表情状态和右键菜单
+├── dialog.py         # 统一的对话框窗口，支持文本输入、消息显示和语音录制
+├── settings_ui.py    # 设置窗口，配置 WebSocket 和 UI 参数
+├── pettraylcon.py    # 系统托盘图标及右键菜单
+├── config.json       # 运行时配置文件
+└── pet-png/          # 宠物图片（calm.png, talk.png, think.png）
 ```
 
-**注意**: WebSocket 连接在后台异步进行，服务器不可用时应用也能正常启动。
+### 核心设计
 
-### 核心组件
-- **main.py**: 入口点。先显示 UI 窗口，再异步连接 WebSocket，启动 `receive_message` 和 `send_message` 守护线程，使用 QTimer 每秒更新连接状态
-- **websocket_class.py**: 基于队列的消息缓冲 WebSocket 客户端，支持异步连接和自动重连
-- **base.py**: `Receiver` QObject，包含跨线程通信用的 `pyqtSignal(str, str)`
-- **config.py**: WebSocket URL（`ws://localhost:8000/ws`）和认证配置
-- **pettraylcon.py**: 系统托盘图标，提供菜单控制三个窗口的显示/隐藏和退出应用
+- **线程模型**：两个守护线程处理 WebSocket I/O（`receive_message`、`send_message`）。UI 更新通过 `base.py` 中的 `Receiver` 类使用 Qt 信号机制，确保线程安全。
+- **配置系统**：`config.py` 提供全局设置和 JSON 持久化。窗口尺寸和 WebSocket 设置可通过 `settings_ui.py` 运行时配置，保存后重启生效。
+- **消息协议**：WebSocket 消息为 JSON 格式。类型包括：
+  - `reasoning`：AI 思考状态，触发宠物说话动画
+  - `message`：文本内容，支持字符串或内容对象列表
+  - `event`：对话重置事件
+- **语音录制**：`dialog.py` 使用 `sounddevice` 捕获音频，转换为 WAV 格式，编码为 base64 后通过 WebSocket 发送。支持"直接发送"选项。
+- **认证机制**：WebSocket 支持可选的 Token 认证，通过 URL 参数传递。
 
-### 连接状态显示（textarea.py）
-- 灰色 "连接中..." - 正在建立连接
-- 绿色 "已连接" - WebSocket 连接成功
-- 红色 "未连接" - 连接断开
+### UI 组件
 
-### 表情状态（pet_ui.py）
-- `resetExpression()` → `calm.png`
-- `startTalking()` → `talk.png`
-- `startThinking()` → `think.png`
+- **宠物窗口**：无边框、透明背景、可拖动。右键菜单提供对话框切换、设置和退出功能。
+- **对话框窗口**：统一的输入/显示组件。Enter 发送消息，Shift+Enter 换行。显示 AI 回复时点击可重置为输入模式。
+- **设置窗口**：配置 WebSocket 地址、Token 认证、宠物和对话框窗口尺寸。
+- **系统托盘**：快速切换宠物窗口和对话框的显示/隐藏，访问设置。
 
-### 消息类型（main.py）
-- `type: "reasoning"` - 触发说话动画，内容不累积
-- `type: "message"` - 累积文本内容，触发动画
-- `event: 任意` - 重置累积内容和宠物表情
+### 依赖
 
-## 资源文件要求
-
-需在 `desktop_pet/pet-png/` 目录放置 PNG 文件：
-- `calm.png` - 默认/待机表情
-- `talk.png` - 说话动画帧
-- `think.png` - 思考动画帧
-
-目前只有 `calm.png` 和 `pet.avif`，其他资源需补充。
-
-## 依赖
-
-```
-PyQt5>=5.15.9
-websocket-client>=1.0.0
-pystray>=0.19.0
-Pillow>=9.0.0
-```
+- PyQt5 >= 5.15.9：UI 框架
+- websocket-client >= 1.0.0：WebSocket 通信
+- sounddevice：音频录制
+- numpy + scipy：音频数据处理

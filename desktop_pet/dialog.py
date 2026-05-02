@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QTextEdit, QPushButton, QLabel, QCheckBox, QGraphicsDropShadowEffect
+from PyQt5.QtWidgets import QWidget, QApplication, QVBoxLayout, QHBoxLayout, QTextEdit, QPushButton, QLabel, QCheckBox, QGraphicsDropShadowEffect, QScroller
 from PyQt5.QtCore import Qt, QTimer, QRectF
 from PyQt5.QtGui import QFont, QPainter, QPainterPath, QBrush, QColor
 import queue
@@ -22,6 +22,7 @@ class DialogWindow(QWidget):
         self.is_recording = False
         self.audio_data = None
         self.record_thread = None
+        self.pet_window = None
 
         # 窗口设置
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
@@ -84,9 +85,11 @@ class DialogWindow(QWidget):
             }
         """)
         self.text_edit.setFrameShape(QTextEdit.NoFrame)
-        self.text_edit.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.text_edit.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.text_edit.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.text_edit.keyPressEvent = self._key_press_event
+        # 启用鼠标拖动滚动
+        QScroller.grabGesture(self.text_edit.viewport(), QScroller.LeftMouseButtonGesture)
 
         text_layout.addWidget(self.text_edit)
 
@@ -203,6 +206,11 @@ class DialogWindow(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
+            # 如果处于显示模式，点击重置对话状态
+            if not self.text_edit.isEnabled():
+                self._reset_dialog()
+                event.accept()
+                return
             self._drag_position = event.globalPos() - self.frameGeometry().topLeft()
             event.accept()
 
@@ -253,11 +261,8 @@ class DialogWindow(QWidget):
     def chat(self, message, msg_type):
         """接收消息并显示（API 逐字发送，直接累积显示）"""
         if msg_type == "event":
-            # 重置状态，准备下一轮对话
-            self._set_mode("input")
-            self.name_label.setText("你")
-            self.text_edit.clear()
-            self.text_edit.setEnabled(True)
+            # 不再自动重置，等待用户手动点击对话框
+            pass
         elif msg_type in ("type", "reasoning"):
             # API 逐字发送，直接累积显示
             self.name_label.setText("AI")
@@ -272,6 +277,20 @@ class DialogWindow(QWidget):
         elif mode == "display":
             self.text_edit.setEnabled(False)
             self.text_edit.setPlaceholderText("")
+
+    def set_pet_window(self, pet_window):
+        """设置宠物窗口引用"""
+        self.pet_window = pet_window
+
+    def _reset_dialog(self):
+        """手动重置对话状态"""
+        if not self.text_edit.isEnabled():  # 只有在显示模式下才重置
+            self._set_mode("input")
+            self.name_label.setText("你")
+            self.text_edit.clear()
+            self.text_edit.setEnabled(True)
+            if self.pet_window:
+                self.pet_window.resetExpression()
 
     # ========== 录音功能 ==========
 

@@ -97,6 +97,7 @@ websocket_client.connect_async()
 
 # 设置 dialog 的 websocket 客户端引用
 window_dialog.set_websocket_client(websocket_client)
+window_dialog.set_pet_window(window_pet)
 
 # 创建定时器更新连接状态
 status_timer = QTimer()
